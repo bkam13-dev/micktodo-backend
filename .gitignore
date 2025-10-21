@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+
+# Database
+db.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Django stuff:
+*.pot
+*.pyc
+*.mo
+*.coverage
+*.egg
+*.egg-info/
+dist/
+build/
+*.sqlite3-journal
+
+# Media / uploads
+media/
+
+# Settings / secrets
+*.env
+
+# IDE / editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Static files (si collectstatic)
+staticfiles/
+
+
+# test api
+*.rest
