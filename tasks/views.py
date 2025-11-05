@@ -7,7 +7,7 @@ from tasks.serializers import TaskSerializer
 
 # vue de création d'une tâche et liste des tâches
 class TaskListCreateView(generics.ListCreateAPIView):
-    queryset = Task.objects.all()
+    queryset = Task.objects.all() 
     serializer_class = TaskSerializer
     
 # vue de modification complète ou spécifique d'une tâche et de suppression d'une tâche
