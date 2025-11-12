@@ -1,34 +1,43 @@
 from decouple import config, Csv
 from pathlib import Path
 import os
-import dj_database_url # Importé pour le parsing de l'URL PostgreSQL
+import environ
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# =================================================================
-# 1. DÉTECTION ET SÉCURITÉ (Lu par config() depuis l'environnement ou .env)
-# =================================================================
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# La clé secrète est lue depuis l'environnement (Render) ou le fichier .env (Local)
+
+# Initialise l'environnement
+# env = environ.Env(
+#     # Déclare que DATABASE_URL est une chaîne
+#     DATABASE_URL=(str, None) 
+# )
+
+
+# Tente de charger les variables depuis le fichier .env (utile seulement en local)
+# environ.Env.read_env()
+
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
-# Le mode DEBUG est lu depuis l'environnement ou .env (doit être False en Prod)
-DEBUG = config('DEBUG', default=False, cast=bool)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = config('DEBUG', cast=bool)
 
+
+# 2. HÔTES AUTORISÉS (Pour accepter l'URL de Render)
 # Vérifie si la variable RENDER_EXTERNAL_HOSTNAME existe (c'est Render qui la donne)
-IS_RENDER = os.environ.get('RENDER_EXTERNAL_HOSTNAME') is not None
 
-# HÔTES AUTORISÉS (Gère la liste complète du .env et ajoute l'hôte Render)
-# Lit toujours la liste du .env (qui contient localhost, 127.0.0.1, et le domaine Vercel)
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
-if IS_RENDER:
-    # Production : Ajoute l'hôte Render à la liste déjà lue du .env
-    RENDER_HOST = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-    if RENDER_HOST and RENDER_HOST not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(RENDER_HOST)
+
 
 
 # Application definition
@@ -81,36 +90,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# =================================================================
-# 2. BASE DE DONNÉES (Gestion de la priorité Prod/Dev)
-# =================================================================
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Tente de récupérer l'URL de connexion complète (Production)
-DATABASE_URL_FULL = config('DATABASE_URL', default=None)
 
-if DATABASE_URL_FULL:
-    # --- CONFIGURATION PRODUCTION (RENDER) ---
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL_FULL,
-            conn_max_age=600, 
-            ssl_require=True  # EXIGÉ en Production
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
-
-else:
-    # --- CONFIGURATION LOCALE (DEV) ---
-    # Utilise les variables détaillées du .env pour la connexion locale PostgreSQL
-    DATABASES = {
-        'default': {
-            'ENGINE': config('DB_ENGINE'),
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST'),
-            'PORT': config('DB_PORT'),
-        }
-    }
+}
 
 
 # Password validation
@@ -158,19 +151,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv())
 
-
-# =================================================================
-# 3. CORS ET SÉCURITÉ HTTPS
-# =================================================================
-
-# CORS : Lit la liste formatée par virgules du .env
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
-
-# SÉCURITÉ HTTPS (Doit être True en Prod si vous avez un domaine personnalisé)
+# HTTPS
 SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+# Headers de sécurité
 SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=False, cast=bool)
 SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=False, cast=bool)
 X_FRAME_OPTIONS = config('X_FRAME_OPTIONS', default='SAMEORIGIN')
